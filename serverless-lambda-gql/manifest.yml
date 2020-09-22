@@ -1,0 +1,5 @@
+project_type: serverless-lambda-gql
+
+variables:
+  - SERVICE_NAME
+  - PROJECT_NAME

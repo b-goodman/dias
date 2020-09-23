@@ -1,5 +1,5 @@
 [package]
-name = "scaffold-generic"
+name = "dias"
 version = "0.1.0"
 authors = ["bgoodman <b@thebgoodman.com>"]
 edition = "2018"
@@ -14,3 +14,4 @@ dialoguer = "0.6.2"
 console = "0.12.0"
 walkdir = "2"
 pathdiff = "0.2.0"
+clap = "2.33.3"

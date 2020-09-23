@@ -5,20 +5,21 @@ use std::path::{Path, PathBuf};
 
 use dialoguer::{theme::ColorfulTheme, Input, Select};
 use pathdiff::diff_paths;
+use console::style;
 
 #[macro_use]
 extern crate serde_json;
 
+extern crate clap;
+use clap::{Arg, App};
+
 mod manifest;
 mod template;
 
-fn discover_templates() -> HashMap<String, PathBuf> {
-    let current_dir = env::current_dir().ok();
-
-    let paths = fs::read_dir(current_dir.expect("Cannot locate working directory")).unwrap();
+fn discover_templates(template_dir: &Path) -> HashMap<String, PathBuf> {
+    let paths = fs::read_dir(template_dir).unwrap();
 
     let mut templates: HashMap<String, PathBuf> = HashMap::new();
-
     for path_result in paths {
         let path = path_result.unwrap().path();
         let metadata = std::fs::metadata(&path).unwrap();
@@ -35,12 +36,35 @@ fn discover_templates() -> HashMap<String, PathBuf> {
 
 fn main() {
     let working_dir = env::current_dir().expect("Error");
+    let current_path = env::current_exe().expect("Error getting exe dir.");
+    let default_template_dir = current_path.parent().expect("Error getting exe dir");
 
-    let templates_registry = discover_templates();
+    let app = App::new("dias")
+    .version("0.1.0")
+    .author("Ben Goodman <b@thebgoodman.com>")
+    .about("Scaffold new projects from templates.");
+
+    // Define the name command line option
+    let template_dir_options = Arg::with_name("templates")
+    .long("templates")
+    .takes_value(true)
+    .help("Sets a custom templates directory.")
+    .default_value(&default_template_dir.to_str().expect("Error parsing exec dir"));
+
+    let app = app.arg(template_dir_options);
+    let matches = app.get_matches();
+
+    let template_dir = matches.value_of("templates").expect("Error matching 'templates' arg.");
+    let templates_registry = discover_templates(&Path::new(template_dir));
     let mut selections = vec![];
 
     for project_type in templates_registry.keys() {
         selections.push(project_type);
+    }
+
+    if selections.len() == 0 {
+        println!("{}", style("No templates found.").red());
+        std::process::exit(0);
     }
 
     let project_type_selection = Select::with_theme(&ColorfulTheme::default())
@@ -83,4 +107,6 @@ fn main() {
     };
 
     template::walk_directory(&template_files_root, template_file_handler);
+
+    println!("{} Your new project is ready.", style('\u{2713}').green());
 }

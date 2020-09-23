@@ -3,6 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
+use console::style;
 
 extern crate handlebars;
 use handlebars::Handlebars;
@@ -27,7 +28,9 @@ pub fn write_file(template_dest_full: PathBuf, template_content: String) {
     if !project_sub_dir.exists() {
         fs::create_dir_all(project_sub_dir).expect("Error creating parent dir.");
     }
-    fs::write(template_dest, template_content).expect("Error writing template file.")
+    fs::write(&template_dest, template_content).expect("Error writing template file.");
+
+    println!("{} {:?}", style("Created").yellow(), &template_dest);
 }
 
 pub fn walk_directory<F: Fn(&Path) -> ()>(template_root: &PathBuf, handler: F) {
